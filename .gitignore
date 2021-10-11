@@ -1,2 +1,4 @@
 .idea
 cmake-build-debug
+*.out
+/week-2/map/test.txt
