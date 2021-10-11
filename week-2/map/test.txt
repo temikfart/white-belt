@@ -1,0 +1,10 @@
+9
+NEW_BUS 32 3 Tolstopaltsevo Marushkino Vnukovo
+NEW_BUS 32K 6 Tolstopaltsevo Marushkino Vnukovo Peredelkino Solntsevo Skolkovo
+NEW_BUS 950 6 Kokoshkino Marushkino Vnukovo Peredelkino Solntsevo Troparyovo
+NEW_BUS 272 4 Vnukovo Moskovsky Rumyantsevo Troparyovo
+STOPS_FOR_BUS 272
+STOPS_FOR_BUS 950
+BUSES_FOR_STOP Marushkino
+BUSES_FOR_STOP Vnukovo
+BUSES_FOR_STOP Solntsevo
