@@ -4,4 +4,4 @@ project(White_belt)
 set(CMAKE_CXX_STANDARD 17)
 
 add_executable(White_belt
-        week-2/map/3.cpp)
+        week-3/algorithms/1.cpp)
