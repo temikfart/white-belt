@@ -7,74 +7,74 @@ using namespace std;
 
 class Person {
 public:
-    void ChangeFirstName(int year, const string& first_name) {
-        // добавить факт изменения имени на first_name в год year
-        FirstName[year] = first_name;
-        chng_first[true] = year;
-    }
-    void ChangeLastName(int year, const string& last_name) {
-        // добавить факт изменения фамилии на last_name в год year
-        LastName[year] = last_name;
-        chng_last[true] = year;
-    }
-    string GetFullName(int year) {
-        // получить имя и фамилию по состоянию на конец года year
-        string fullname;
-        bool has_first = false;
-        int year_f = 0;
-        if (chng_first.count(true) != 0) {
-            has_first = chng_first[true] >= year;
-            year_f = chng_first[true];
-        }
+  void ChangeFirstName(int year, const string& first_name) {
+    // добавить факт изменения имени на first_name в год year
+    names[year].first_name = first_name;
+    changes[year].first = true;
+  }
+  void ChangeLastName(int year, const string& last_name) {
+    // добавить факт изменения фамилии на last_name в год year
+    names[year].last_name = last_name;
+    changes[year].last = true;
+  }
+  string GetFullName(int year) {
+    // получить имя и фамилию по состоянию на конец года year
 
-        bool has_last = false;
-        int year_l = 0;
-        if (chng_last.count(true) != 0) {
-            has_last = chng_last[true] >= year;
-            year_l = chng_last[true];
+    // has part of name
+    int first_y, last_y;
+    first_y = -1;
+    last_y = -1;
+    for (const auto& [key, value] : changes) {
+      if (key <= year) {
+        if (value.first) {
+          first_y = key;
         }
-
-        switch (has_first + has_last) {
-            case 0:
-                fullname = "Incognito";
-            case 1:
-                if (has_first) {
-                    fullname = FirstName[year_f] + " with unknown first name";
-                } else {
-                    fullname = LastName[year_l] + " with unknown last name";
-                }
-            case 2:
-                fullname = FirstName[year_f] + LastName[year_l];
+        if (value.last) {
+          last_y = key;
         }
-
-        return fullname;
+      }
     }
+
+    string part;
+    if (first_y == -1 && last_y == -1) {
+      return "Incognito";
+    }
+    if (first_y == -1) {
+      part = names[last_y].last_name + " with unknown first name";
+      return part;
+    }
+    if (last_y == -1) {
+      part = names[first_y].first_name + " with unknown last name";
+      return part;
+    }
+
+
+    // has fullname
+    string fullname;
+    fullname = names[first_y].first_name + " " + names[last_y].last_name;
+    return fullname;
+  }
 private:
-    // приватные поля
-    map<int, string> FirstName;
-    map<int, string> LastName;
-    map<bool, int> chng_first;
-    map<bool, int> chng_last;
+  // приватные поля
+  struct name {
+    string first_name;
+    string last_name;
+  };
+  struct has_chng {
+    bool first;
+    bool last;
+  };
+  map<int, name> names;
+  map<int, has_chng> changes;
 };
 
 int main() {
-    Person person;
+  Person Person;
 
-    person.ChangeFirstName(1965, "Polina");
-    person.ChangeLastName(1967, "Sergeeva");
-    for (int year : {1900, 1965, 1990}) {
-        cout << person.GetFullName(year) << endl;
-    }
+  Person.ChangeFirstName(65, "p");
+  Person.ChangeLastName(69, "s");
+  Person.ChangeFirstName(70, "a");
+  cout << Person.GetFullName(66) << endl;
 
-    person.ChangeFirstName(1970, "Appolinaria");
-    for (int year : {1969, 1970}) {
-        cout << person.GetFullName(year) << endl;
-    }
-
-    person.ChangeLastName(1968, "Volkova");
-    for (int year : {1969, 1970}) {
-        cout << person.GetFullName(year) << endl;
-    }
-
-    return 0;
+  return 0;
 }
