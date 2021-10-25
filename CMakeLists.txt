@@ -4,4 +4,4 @@ project(White_belt)
 set(CMAKE_CXX_STANDARD 17)
 
 add_executable(White_belt
-        week-4/str-cl-examples/3.cpp)
+        week-4/txt-and-streams/1/1.cpp)
