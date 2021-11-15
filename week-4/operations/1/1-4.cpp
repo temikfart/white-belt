@@ -95,7 +95,9 @@ istream& operator >>(istream& stream, Rational& r) {
     return stream;
   }
 
-  stream >> denominator;
+  if (!(stream >> denominator)) {
+    return stream;
+  };
 
   if(denominator == 0) {
     return stream;
