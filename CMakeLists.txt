@@ -3,5 +3,5 @@ project(White_belt)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(White_belt
-        week-4/exceptions/1.cpp)
+add_executable(white_belt
+        week-4/exceptions/2.cpp)
