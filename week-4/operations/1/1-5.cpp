@@ -128,22 +128,27 @@ bool operator >(Rational lhs, Rational rhs) {
 istream& operator >>(istream& stream, Rational& r) {
   int numerator;
   int denominator;
-
-  stream >> numerator;
+  
+  if (!(stream >> numerator)) {
+    return stream;
+  };
+  
   char delim;
-  stream >> delim;
-  if (delim != '/') {
+  if (!(stream >> delim) || delim != '/') {
     return stream;
   }
-  stream >> denominator;
-
+  
+  if (!(stream >> denominator)) {
+    return stream;
+  };
+  
   if(denominator == 0) {
     return stream;
   }
-
+  
   Rational res(numerator, denominator);
   r = res;
-
+  
   return stream;
 }
 ostream& operator <<(ostream& stream, const Rational& r) {
