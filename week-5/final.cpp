@@ -61,9 +61,14 @@ private:
   int day;
 };
 
-//bool operator<(const Date& lhs, const Date& rhs) {
-//  if lhs
-//}
+bool operator<(const Date& lhs, const Date& rhs) {
+  if (lhs.GetYear() == rhs.GetYear()) {
+    int lhs_days = 31 * lhs.GetMonth() + lhs.GetDay();
+    int rhs_days = 31 * rhs.GetMonth() + rhs.GetDay();
+    return lhs_days < rhs_days;
+  }
+  return lhs.GetYear() < rhs.GetYear();
+}
 
 //class Database {
 //public:
@@ -130,6 +135,28 @@ void DateTest() {
       {
         cout << endl << "Expecting: Invalid day exception." << endl;
         Date d2(0, 1, 32);
+      }
+    }
+    // Operator < for the Date class tests
+    {
+      // Different years, same months and days
+      if ( !(Date(1, 1, 1) < Date(2, 1, 1)) ) {
+        cout << "Expected, that 1.1.1 < 2.1.1" << endl;
+      }
+      // Different years, months and days
+      if ( !(Date(1, 12, 5) < Date(2, 10, 4)) ) {
+        cout << "Expected, that 1.12.5 < 2.10.5" << endl;
+      }
+      // Comparing with negative year
+      if ( !(Date(-1, 1, 1) < Date(0, 1, 1)) ) {
+        cout << "Expected, that -1.1.1 < 0.1.1" << endl;
+      }
+      // Same years, different months and days
+      if ( !(Date(1, 7, 5) < Date(1, 9, 13)) ) {
+        cout << "Expected, that 1.7.5 < 1.9.13" << endl;
+      }
+      if ( !(Date(1, 1, 12) < Date(1, 1, 15)) ) {
+        cout << "Expected, that 1.1.12 < 1.1.15" << endl;
       }
     }
   }
