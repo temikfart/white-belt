@@ -16,6 +16,8 @@ public:
     day = 1;
   }
   Date(int new_year, int new_month, int new_day) {
+    bool flag = true;
+    
     // Set year
     year = new_year;
     // Set month
@@ -23,22 +25,19 @@ public:
       ValidateMonth(new_month);
     } catch (const invalid_argument& ex) {
       cout << ex.what() << endl;
+      flag = false;
     }
     month = new_month;
     // Set day
     try {
       ValidateDay(new_day);
     } catch (const invalid_argument& ex) {
-      cout << ex.what() << endl;
+      if (flag) {
+        cout << ex.what() << endl;
+      }
     }
     day = new_day;
   }
-//  string DateToStr() const {
-//    string res = to_string(year) + "-"
-//      + to_string(month) + "-"
-//      + to_string(day);
-//    return res;
-//  }
   int GetYear() const {
     return year;
   }
@@ -48,6 +47,13 @@ public:
   int GetDay() const {
     return day;
   }
+  void Print() const {
+    cout << setfill('0') << setw(4) << year;
+    cout << "-";
+    cout << setfill('0') << setw(2) << month;
+    cout << "-";
+    cout << setfill('0') << setw(2) << day;
+  };
   
 private:
   void ValidateMonth(int new_month) {
@@ -134,9 +140,8 @@ public:
       sort(begin(v), end(v));
       for (const auto& str : v) {
         // Print date:
-        cout << setfill('0') << setw(4) << key.GetYear();
-        cout << '-' << key.GetMonth()
-             << '-' << key.GetDay() << ' ';
+        key.Print();
+        cout << " ";
         // Print event
         cout << str << endl;
       }
@@ -279,20 +284,103 @@ void DatabaseTest() {
   }
 }
 
-int main() {
-  DateTest();
-  DatabaseTest();
+Date StrToDate(string& s) {
+  string year, month, day;
+  int i = 0;
   
-//  Database db;
-//  map<string, int> cmds = {{"Add", 1},
-//                           {"Del", 2},
-//                           {"Find", 3},
-//                           {"Print", 4}};
-//
-//  string command;
-//  while (getline(cin, command)) {
-//
-//  }
+  for(const auto& c : s) {
+    if (c == '-') {
+      i++;
+      continue;
+    }
+    switch(i) {
+      case 0:
+        year += c;
+        break;
+      case 1:
+        month += c;
+        break;
+      case 2:
+        day += c;
+        break;
+      default:
+        cout << "Something went wrong with parsing date_str." << endl;
+        break;
+    }
+  }
+  Date date(stoi(year), stoi(month), stoi(day));
+  
+  return date;
+}
+
+int main() {
+//  DateTest();
+//  DatabaseTest();
+  
+  Database db;
+  map<string, int> cmds = {{"Add", 1},
+                           {"Del", 2},
+                           {"Find", 3},
+                           {"Print", 4}};
+
+  string command;
+  while (getline(cin, command)) {
+    string cmd, event, date_str;
+    int i = 0;
+    
+    for (const auto& x : command) {
+      if (x == ' ') {
+        i++;
+        continue;
+      }
+      switch(i) {
+        case 0:
+          cmd += (char)(x);
+          break;
+        case 1:
+          date_str += (char)(x);
+          break;
+        case 2:
+          event += (char)(x);
+          break;
+        default:
+          cout << "Something went wrong with scan" << endl;
+      }
+    }
+    Date date;
+    if (date_str.empty() == 0) {
+      date = StrToDate(date_str);
+    }
+    
+    if (cmd.empty()) {
+      continue;
+    }
+    if (cmds.count(cmd) > 0) {
+      switch(cmds[cmd]) {
+        case 1:
+          db.AddEvent(date, event);
+          break;
+        case 2:
+          if (event.empty() == 0) {
+            db.DeleteEvent(date, event);
+          } else {
+            db.DeleteDate(date);
+          }
+          break;
+        case 3:
+          db.Find(date);
+          break;
+        case 4:
+          db.Print();
+          break;
+        default:
+          cout << "Something went wrong with db" << endl;
+          break;
+      }
+    } else {
+      cout << "Unknown command: " << cmd << endl;
+    }
+  }
   
   return 0;
 }
