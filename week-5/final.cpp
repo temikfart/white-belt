@@ -5,6 +5,7 @@
 #include <sstream>
 #include <algorithm>
 #include <iomanip>
+#include <ctype.h>
 
 using namespace std;
 
@@ -21,22 +22,9 @@ public:
     // Set year
     year = new_year;
     // Set month
-    try {
-      ValidateMonth(new_month);
-    } catch (const invalid_argument& ex) {
-      cout << ex.what() << endl;
-      flag = false;
-    }
-    month = new_month;
+    SetMonth(new_month);
     // Set day
-    try {
-      ValidateDay(new_day);
-    } catch (const invalid_argument& ex) {
-      if (flag) {
-        cout << ex.what() << endl;
-      }
-    }
-    day = new_day;
+    SetDay(new_day);
   }
   int GetYear() const {
     return year;
@@ -46,6 +34,27 @@ public:
   }
   int GetDay() const {
     return day;
+  }
+  void SetYear(int new_year) {
+    year = new_year;
+  }
+  void SetMonth(int new_month) {
+    try {
+      ValidateMonth(new_month);
+    } catch (const invalid_argument& ex) {
+      cout << ex.what() << endl;
+      exit(0);
+    }
+    month = new_month;
+  }
+  void SetDay(int new_day) {
+    try {
+      ValidateDay(new_day);
+    } catch (const invalid_argument& ex) {
+      cout << ex.what() << endl;
+      exit(0);
+    }
+    day = new_day;
   }
   void Print() const {
     cout << setfill('0') << setw(4) << year;
@@ -86,7 +95,10 @@ class Database {
 public:
   void AddEvent(const Date& date, const string& event) {
     if (db.count(date) > 0) {
-      vector<string>& v = db.at(date);
+      vector<string> v;
+      try {
+        v = db.at(date);
+      } catch (...) {}
       if (find(begin(v), end(v), event) == end(v)) {
         db[date].push_back(event);
       }
@@ -96,10 +108,13 @@ public:
   }
   bool DeleteEvent(const Date& date, const string& event) {
     if (db.count(date) > 0) {
-      vector <string>& v = db.at(date);
+      vector <string> v;
+      try {
+        v = db.at(date);
+      } catch(...) {}
       if (find(begin(v), end(v), event) != end(v)) {
         vector<string> tmp;
-        for (const auto& ev : db.at(date)) {
+        for (const auto& ev : v) {
           if (ev != event) {
             tmp.push_back(ev);
           }
@@ -107,11 +122,14 @@ public:
         db.erase(date);
         db[date] = tmp;
         cout << "Deleted successfully" << endl;
+        return true;
       } else {
         cout << "Event not found" << endl;
+        return false;
       }
     } else {
       cout << "Event not found" << endl;
+      return false;
     }
   }
   int DeleteDate(const Date& date) {
@@ -284,33 +302,68 @@ void DatabaseTest() {
   }
 }
 
-Date StrToDate(string& s) {
-  string year, month, day;
-  int i = 0;
+void EnsureNextSymbolAndSkip(stringstream& stream) {
+  if (stream.peek() != '-') {
+    throw invalid_argument("Wrong date format: ");
+  }
+  stream.ignore(1);
+}
+void EnsureEmptyStream(stringstream& stream) {
+  if (stream.peek() != EOF) {
+    throw invalid_argument("Wrong date format: ");
+  }
+}
+int EnsureDigit(string& s) {
+//  cout << s[0];
+  if (isdigit(s[0]) != 0) {           // Если число, тогда считываем
+    int day;
+    stringstream input(s);
+    input >> day;
+    EnsureEmptyStream(input);
+    return day;
+  } else {
+    throw invalid_argument("Wrong date format: ");
+  }
+}
+int EnsureCorrectDay(stringstream& stream) {
+  string s;
+  stream >> s;
   
-  for(const auto& c : s) {
-    if (c == '-') {
-      i++;
-      continue;
-    }
-    switch(i) {
-      case 0:
-        year += c;
-        break;
-      case 1:
-        month += c;
-        break;
-      case 2:
-        day += c;
-        break;
-      default:
-        cout << "Something went wrong with parsing date_str." << endl;
-        break;
+  int day;
+  
+  if (s[0] != '-' && s[0] != '+') {     // Если не - или +, тогда число?
+    day = EnsureDigit(s);
+  } else {                              // Если - или +, тогда проверяем дальше
+    stringstream input(s);
+    if (isdigit(s[1]) == 0) {
+      throw invalid_argument("Wrong date format: ");
+    } else {
+      input >> day;
+      EnsureEmptyStream(input);
     }
   }
-  Date date(stoi(year), stoi(month), stoi(day));
+  return day;
+}
+
+Date StrToDate(string& s) {
+  int year, month, day;
   
-  return date;
+  stringstream stream(s);
+  try {
+    stream >> year;
+    EnsureNextSymbolAndSkip(stream);
+    stream >> month;
+//    cout << month << " " << stream.peek() << endl;          // Debug
+    EnsureNextSymbolAndSkip(stream);
+    day = EnsureCorrectDay(stream);
+    EnsureEmptyStream(stream);
+//    cout << day << " " << (stream.peek() == EOF) << endl;   // Debug
+    Date date(year, month, day);
+    return date;
+  } catch(const invalid_argument& ex) {
+    cout << ex.what() << s << endl;
+    exit(1);
+  }
 }
 
 int main() {
@@ -329,56 +382,64 @@ int main() {
     int i = 0;
     
     for (const auto& x : command) {
-      if (x == ' ') {
+//      cout << "(" << i << ")-" << x << ".";
+      if (x == ' ' || x == '\n') {
         i++;
         continue;
       }
       switch(i) {
         case 0:
-          cmd += (char)(x);
+          cmd += x;
           break;
         case 1:
-          date_str += (char)(x);
+          date_str += x;
           break;
         case 2:
-          event += (char)(x);
+          event += x;
           break;
         default:
           cout << "Something went wrong with scan" << endl;
       }
     }
+//    cout << endl;
+    if (cmd.empty() == 1) {
+      continue;
+    } else if(cmds.count(cmd) < 1) {
+      cout << "Unknown command: " << cmd << endl;
+      exit(1);
+    }
+    
+    
     Date date;
     if (date_str.empty() == 0) {
       date = StrToDate(date_str);
     }
     
-    if (cmd.empty()) {
-      continue;
-    }
-    if (cmds.count(cmd) > 0) {
-      switch(cmds[cmd]) {
-        case 1:
-          db.AddEvent(date, event);
-          break;
-        case 2:
-          if (event.empty() == 0) {
-            db.DeleteEvent(date, event);
-          } else {
-            db.DeleteDate(date);
-          }
-          break;
-        case 3:
-          db.Find(date);
-          break;
-        case 4:
-          db.Print();
-          break;
-        default:
-          cout << "Something went wrong with db" << endl;
-          break;
-      }
-    } else {
-      cout << "Unknown command: " << cmd << endl;
+//    bool empty = cmd.empty();
+//    cout << cmd << empty << cmd[cmd.size()-1] << cmd.size() << " ";
+//    date.Print();
+//    cout << " " << event << endl;
+  
+    switch(cmds[cmd]) {
+      case 1:
+        db.AddEvent(date, event);
+        break;
+      case 2:
+        if (event.empty() == 0) {
+          db.DeleteEvent(date, event);
+        } else {
+          db.DeleteDate(date);
+        }
+        break;
+      case 3:
+        db.Find(date);
+        break;
+      case 4:
+        db.Print();
+        break;
+      default:
+        cout << "Something went wrong with db" << endl;
+        break;
     }
   }
   
