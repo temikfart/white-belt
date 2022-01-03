@@ -2,5 +2,5 @@
 
 ---
 
-There are almost all solutions. I collected them
-at the second week. Some solutions can be implemented in the best way.
+Almost all White Belt solutions are collected here.
+I started adding them to this repository from the second week.
